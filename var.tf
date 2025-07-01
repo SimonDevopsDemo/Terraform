@@ -13,11 +13,6 @@ variable "instance_type" {
   default     = "t2.micro"
 }
 
-variable "key_name" {
-  description = "Name of the existing key pair"
-  type        = string
-}
-
 variable "instance_name" {
   description = "Name tag for the instance"
   type        = string
