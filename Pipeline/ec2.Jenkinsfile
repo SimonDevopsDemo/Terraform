@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   parameters {
-    string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'Git branch to build')
+    string(name: 'GIT_BRANCH', defaultValue: 'master', description: 'Git branch to build')
     booleanParam(name: 'DEPLOY_EC2', defaultValue: false, description: 'Deploy EC2 infrastructure')
     booleanParam(name: 'DEPLOY_RDS', defaultValue: false, description: 'Deploy RDS infrastructure')
     booleanParam(name: 'DESTROY', defaultValue: false, description: 'Destroy selected infrastructure')
@@ -25,7 +25,7 @@ pipeline {
         expression { return params.DEPLOY_EC2 }
       }
       steps {
-        dir('EC2') {
+        dir('Ec2-Instance') {
           script {
             bat 'terraform init'
             def planCmd = params.DESTROY ?
