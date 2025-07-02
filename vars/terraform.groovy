@@ -12,7 +12,7 @@ def destroyTerraformForModule(String moduleName) {
         echo "🧨 Destroying Terraform resources for ${moduleName}..."
 
         // Initialize Terraform
-        bat 'terraform init'
+        bat 'terraform init -input = false'
 
         // Plan the destroy (shows what will be deleted)
         bat 'terraform plan -destroy -out=tfplan'
