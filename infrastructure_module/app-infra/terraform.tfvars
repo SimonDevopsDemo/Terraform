@@ -6,7 +6,7 @@ vpc_config = {
 }
 
 ec2_config = {
-  ami_id        = "ami-0abcdef1234567890"
+  ami_id        = "ami-0d03cb826412c6b0f"
   instance_type = "t2.micro"
   instance_name = "basic-instance"
 }
