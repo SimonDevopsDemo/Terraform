@@ -7,4 +7,20 @@ def runTerraformForModule(String moduleName) {
     }
 }
 
+def destroyTerraformForModule(String moduleName) {
+    dir("infrastructure_module/${moduleName}") {
+        echo "🧨 Destroying Terraform resources for ${moduleName}..."
+
+        // Initialize Terraform
+        bat 'terraform init'
+
+        // Plan the destroy (shows what will be deleted)
+        bat 'terraform plan -destroy -out=tfplan'
+
+        // Apply the destroy plan
+        bat 'terraform apply -auto-approve tfplan'
+    }
+}
+
 return this
+
