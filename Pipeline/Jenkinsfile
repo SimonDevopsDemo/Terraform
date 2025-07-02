@@ -1,0 +1,53 @@
+pipeline {
+  agent any
+
+  parameters {
+    string(name: 'GIT_BRANCH', defaultValue: 'master', description: 'Git branch to build')
+    booleanParam(name: 'DEPLOY_APP_INFRA', defaultValue: false, description: 'Deploy or destroy app-infra infrastructure')
+    booleanParam(name: 'DESTROY_APP_INFRA', defaultValue: false, description: 'Destroy selected infrastructure')
+  }
+
+  environment {
+    AWS_ACCESS_KEY_ID     = credentials('aws-access-key')
+    AWS_SECRET_ACCESS_KEY = credentials('aws-access-key')
+  }
+
+  stages {
+    stage('Checkout Code') {
+      steps {
+        git branch: "${params.GIT_BRANCH}", url: 'https://github.com/SimonDevopsDemo/Terraform.git'
+      }
+    }
+
+    stage('Process App Infrastructure') {
+      when {
+        expression { return params.DEPLOY_APP_INFRA }
+      }
+      steps {
+        dir('infrastructure_module/app-infra') {
+          script {
+            bat 'terraform init'
+
+            def planCmd = params.DESTROY_APP_INFRA ?
+              'terraform plan -destroy -out=tfplan' :
+              'terraform plan -out=tfplan'
+
+            bat planCmd
+            bat 'terraform apply -auto-approve tfplan'
+          }
+        }
+      }
+    }
+
+    stage('Validate Inputs') {
+      when {
+        not {
+          expression { params.DEPLOY_APP_INFRA }
+        }
+      }
+      steps {
+        error "No infrastructure operation selected. Enable DEPLOY_APP_INFRA to proceed."
+      }
+    }
+  }
+}
