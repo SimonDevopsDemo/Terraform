@@ -12,6 +12,7 @@ pipeline {
     booleanParam(name: 'provision_rds', defaultValue: false, description: 'Provision RDS')
     booleanParam(name: 'provision_s3',  defaultValue: false, description: 'Provision S3')
     booleanParam(name: 'app_infra',  defaultValue: false, description: 'Provision infrastructure')
+    booleanParam(name: 'destroy_app_infra',  defaultValue: false, description: 'Destroy infrastructure')
   }
 
   stages {
@@ -62,6 +63,17 @@ pipeline {
         }
       }
     }
+    stage('Destroy app-infra') {
+      when {
+        expression { return params.destroy_app_infra }
+      }
+      steps {
+        script {
+          method.destroyTerraformForModule("app-infra")
+        }
+      }
+    }
+  
   }
 
   post {
