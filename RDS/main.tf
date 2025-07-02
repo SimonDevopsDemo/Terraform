@@ -5,7 +5,7 @@ provider "aws" {
 resource "aws_db_instance" "postgres" {
   identifier         = "my-postgres-db"
   engine             = "postgres"
-  engine_version     = "15.4"
+  engine_version     = "16.9"
   instance_class     = "db.t3.micro"
   allocated_storage  = 20
   storage_type       = var.storage_type
