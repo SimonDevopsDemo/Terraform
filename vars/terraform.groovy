@@ -1,9 +1,9 @@
 def runTerraformForModule(String moduleName) {
     dir("infrastructure_module/${moduleName}") {
         echo "🔧 Running Terraform for ${moduleName}..."
-        sh 'terraform init'
-        sh 'terraform plan -out=tfplan'
-        sh 'terraform apply -auto-approve tfplan'
+        bat 'terraform init'
+        bat 'terraform plan -out=tfplan'
+        bat 'terraform apply -auto-approve tfplan'
     }
 }
 
