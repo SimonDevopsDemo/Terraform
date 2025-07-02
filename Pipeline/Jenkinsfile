@@ -1,15 +1,17 @@
 pipeline {
   agent any
 
-  parameters {
-    string(name: 'GIT_BRANCH', defaultValue: 'master', description: 'Git branch to build')
-    booleanParam(name: 'DEPLOY_APP_INFRA', defaultValue: false, description: 'Deploy or destroy app-infra infrastructure')
-    booleanParam(name: 'DESTROY_APP_INFRA', defaultValue: false, description: 'Destroy selected infrastructure')
-  }
-
   environment {
     AWS_ACCESS_KEY_ID     = credentials('aws-access-key')
     AWS_SECRET_ACCESS_KEY = credentials('aws-access-key')
+  }
+
+  parameters {
+    string(name: 'GIT_BRANCH', defaultValue: 'master', description: 'Git branch to build')
+    booleanParam(name: 'provision_ec2', defaultValue: false, description: 'Provision EC2')
+    booleanParam(name: 'provision_rds', defaultValue: false, description: 'Provision RDS')
+    booleanParam(name: 'provision_s3',  defaultValue: false, description: 'Provision S3')
+    booleanParam(name: 'app_infra',  defaultValue: false, description: 'Provision infrastructure')
   }
 
   stages {
@@ -19,35 +21,55 @@ pipeline {
       }
     }
 
-    stage('Process App Infrastructure') {
-      when {
-        expression { return params.DEPLOY_APP_INFRA }
-      }
+    stage('Load Terraform Functions') {
       steps {
-        dir('infrastructure_module/app-infra') {
-          script {
-            bat 'terraform init'
-
-            def planCmd = params.DESTROY_APP_INFRA ?
-              'terraform plan -destroy -out=tfplan' :
-              'terraform plan -out=tfplan'
-
-            bat planCmd
-            bat 'terraform apply -auto-approve tfplan'
-          }
+        script {
+          def commonVars = "${env.WORKSPACE}/vars/terraform.groovy"
+          method = load(commonVars)
         }
       }
     }
 
-    stage('Validate Inputs') {
+    stage('Provision EC2') {
       when {
-        not {
-          expression { params.DEPLOY_APP_INFRA }
-        }
+        expression { return params.provision_ec2 }
       }
       steps {
-        error "No infrastructure operation selected. Enable DEPLOY_APP_INFRA to proceed."
+        script {
+          method.runTerraformForModule("ec2")
+        }
       }
+    }
+
+    stage('Provision RDS') {
+      when {
+        expression { return params.provision_rds }
+      }
+      steps {
+        script {
+          method.runTerraformForModule("rds")
+        }
+      }
+    }
+
+    stage('Provision app-infra') {
+      when {
+        expression { return params.app_infra }
+      }
+      steps {
+        script {
+          method.runTerraformForModule("app-infra")
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "✅ All selected Terraform modules applied successfully."
+    }
+    failure {
+      echo "❌ Terraform execution failed."
     }
   }
 }
